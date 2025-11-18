@@ -4,7 +4,7 @@ f = order_conditions(a,b);
 
 %Print the worst error in the order conditions to the screen
 worst_error = max(abs(f));
-
+assert(worst_error == 0);
 fprintf("Max(abs(error in order conditions) = %f for my RK6.\n", worst_error);
 
 
@@ -13,7 +13,7 @@ f = order_conditions(a,b);
 
 %Print the worst error in the order conditions to the screen
 worst_error = max(abs(f));
-
+assert(worst_error == 0);
 fprintf("Max(abs(error in order conditions) = %f for Butcher's RK6.\n", worst_error);
 
 
@@ -95,7 +95,8 @@ function [a,b] = my_rk6()
 end
 
 function [a,b] = butcher_rk6()
-  %One of the sixth order methods provided by J. Butcher 
+  %One of the sixth order methods provided by J. Butcher in 
+  %"On Runge-Kutta Processes of High Order" (1964)
   b = sym( [11/120, 0, 27/40, 27/40, -4/15, -4/15, 11/120]);
 
   a = sym(zeros(7,7));
