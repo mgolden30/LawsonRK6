@@ -17,7 +17,6 @@ assert(worst_error == 0);
 fprintf("Max(abs(error in order conditions) = %f for Butcher's RK6.\n", worst_error);
 
 
-
 function f = order_conditions(a,b)
   %{
   All 37 order conditions of a sixth order RK method.
