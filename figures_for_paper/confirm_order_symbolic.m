@@ -1,11 +1,15 @@
+%Requires symbolic toolbox in MATLAB
 
-[a,b] = my_rk6()
+clear;
+clf;
+
+[a,b] = rk6_uniform()
 f = order_conditions(a,b);
 
 %Print the worst error in the order conditions to the screen
 worst_error = max(abs(f));
 assert(worst_error == 0);
-fprintf("Max(abs(error in order conditions) = %f for my RK6.\n", worst_error);
+fprintf("Max(abs(error in order conditions) = %e for RK6-uniform.\n", worst_error);
 
 
 [a,b] = butcher_rk6()
@@ -14,7 +18,7 @@ f = order_conditions(a,b);
 %Print the worst error in the order conditions to the screen
 worst_error = max(abs(f));
 assert(worst_error == 0);
-fprintf("Max(abs(error in order conditions) = %f for Butcher's RK6.\n", worst_error);
+fprintf("Max(abs(error in order conditions) = %e for Butcher's RK6.\n", worst_error);
 
 
 function f = order_conditions(a,b)
@@ -80,7 +84,7 @@ function f = order_conditions(a,b)
 end
 
 
-function [a,b] = my_rk6()
+function [a,b] = rk6_uniform()
   b = sym( [13/200, 0, 4/25, 11/40, 0, 11/40, 4/25, 13/200] );
 
   a = sym(zeros(8,8));
