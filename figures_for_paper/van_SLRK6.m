@@ -5,54 +5,29 @@ scheme on the van der Pol oscillator
 
 clear;
 
-%mkdir("./figures/");
+%initial condition
 x = [2; 0];
-mu = 100;
 
-%implicit part of dynamics
-A = [0, 1; -1, mu];
-g = @(x) [0; -mu*x(1)^2*x(2)];
+mu = 100;
 
 A_fn = @(x0) [0, 1; -2*mu*x0(1)*x0(2) - 1, mu*(1-x0(1)^2)];
 g_fn = @(x0) @(x) [0; -mu*(x(1)^2 - x0(1)^2)*x(2) + 2*mu*x0(1)*x0(2)*x(1)];
 
-%{
-r = -10;
-diss = @(x) -r;%min( [r, mu*(1-x(1)^2)] );
-A_fn = @(x0) [0, 1; -1, diss(x0)];
-g_fn = @(x0) @(x) [0; mu*(1-x(1)^2)*x(2) - diss(x0)*x(2) ];
-%}
-
 t = 200;
-m_fine = 64 * 1024;
+m_fine = 256 * 1024;
 xs_fine = slrk6_v2(x, A_fn, g_fn, t, m_fine);
-
-t = 200;
-m_ultrafine = 640 * 1024;
-xs_ultrafine = slrk6_v2(x, A_fn, g_fn, t, m_ultrafine);
-
-%%
-clf;
-plot(xs_ultrafine(1,:), xs_ultrafine(2,:), 'color', [1,1,1]*0.6, 'linewidth', 3);
-hold on
 scatter(xs_fine(1,:), xs_fine(2,:), 's', ...
     'filled', ...
    'MarkerFaceColor','red');
-hold off
-xlabel("$y_1$", "Interpreter", "latex");
-ylabel("$y_2$", "Interpreter", "latex", "rotation", 0);
-xlim([-3 3]);
-ylim([-150, 150]);
-axis square;
+
+
 
 %%
-ms = round(exp(linspace(log(1024), log(32*1024), 32)));
+ms = round(exp(linspace(log(8*1024), log(128*1024), 32)));
 points = numel(ms);
 
 err_4 = zeros(points,1);
 err_6 = zeros(points,1);
-err_4 = zeros(points,1);
-err_4 = zeros(points,1);
 
 for i = 1:points
   xs = slrk4_v2(x, A_fn, g_fn, t, ms(i) );  
@@ -66,34 +41,36 @@ end
 clf;
 
 %generate power law fits to the error
-indices = [16:32];
+indices = [24:32];
 [ms_4, err_4b, fit_4, p4] = fit_power_law(ms, err_4, indices );
 
-indices = [16:32];
+indices = [24:32];
 [ms_6, err_6b, fit_6, p6] = fit_power_law(ms, err_6, indices );
 
+%Call the nondimensional quantity s
+s_4 = mu*(t./ms_4);
+s_6 = mu*(t./ms_6);
+s = mu*(t./ms);
 
 marker_size = 100;
 plot([], []);
 hold on
 %visulize all data points, regardless of "indices" used to fit the power
 %law
-plot( ms_4, fit_4, "-", "color", "black", "LineWidth", 2);
-plot( ms_6, fit_6, "-", "color", "black", "LineWidth", 2 );
-scatter(ms, err_4, marker_size, 's', 'filled', "markerfacecolor", "black");
-scatter(ms, err_6, marker_size, 'd', "markeredgecolor", "black", "markerfacecolor", "w", "LineWidth", 2);
-%estimated_floor = numel(w) * 1e-16;
-%yline( estimated_floor, 'linestyle', '-.');
+plot( s_4, fit_4, "-", "color", "black", "LineWidth", 2);
+plot( s_6, fit_6, "-", "color", "black", "LineWidth", 2 );
+scatter(s, err_4, marker_size, 's', 'filled', "markerfacecolor", "black");
+scatter(s, err_6, marker_size, 'd', "markeredgecolor", "black", "markerfacecolor", "w", "LineWidth", 2);
 hold off
 
-legend({"", "", "SLRK4", "SLRK6", ""}, "location", "southwest");
+legend({"", "", "SLRK4", "SLRK6", ""}, "location", "southeast", "interpreter", "latex");
 set(gca, "xscale", "log");
 set(gca, "yscale", "log");
 
 axis square;
 
 set(gca, "fontsize", 32);
-xlabel( "timesteps $m$", "Interpreter", "latex");
+xlabel( "$\mu \Delta t$", "Interpreter", "latex");
 ylabel( "max absolute error", "Interpreter", "latex");
 
 %xlim([256*0.9, 2048*1.1]);
@@ -105,20 +82,23 @@ set(gcf, "color", "w");
 
 box on
 str = sprintf( "$ m^{%.2f}$", p4(1) );
-tx = 512+100;
-ty = 1e-4;
+tx = 0.2;
+ty = 1e-2;
 text(tx, ty, str, 'FontSize', 32, 'Interpreter', 'latex');
 
 str = sprintf( "$ m^{%.2f}$", p6(1) );
-tx = 512 + 400;
-ty = 5e-9;
+tx = 0.2;
+ty = 1e-5;
 text(tx, ty, str, 'FontSize', 32, 'Interpreter', 'latex');
 
 %Add a ylabel at the estimated noise floor
-yt = yticks(); %get current ticks
-yt(end+1) = estimated_floor;  %Append the noise floor
-yt = sort( yt );
-yticks(yt);
+%yt = yticks(); %get current ticks
+%yt(end+1) = estimated_floor;  %Append the noise floor
+%yt = sort( yt );
+%yticks(yt);
+
+xticks([0.25, 0.5, 1]);
+exportgraphics(gcf, "figures/VDP.png");
 return
 
 set(groot, 'defaultAxesTickLabelInterpreter','latex');

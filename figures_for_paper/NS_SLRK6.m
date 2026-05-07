@@ -266,3 +266,37 @@ function [ms, err, fit, p] = fit_power_law(ms, err, indices)
 
   fit = exp(p(2))*ms.^p(1);
 end
+
+function u = LawsonRK6(w,nu,forcing,my_grid,t,m,mode)
+  %passed in as real tensor
+  w = fft2(w);
+
+  %timestep
+  h = t/m;
+
+  e = @(c) exp(-nu*my_grid.k_sq*h*c) .* my_grid.mask;
+
+  %nonlinear part
+  g = @(w) rhs(w, forcing, my_grid);
+    
+  %Grab coefficients
+  [a,b] = eval(mode + "()");
+  s = numel(b); %number of stages
+  c = sum(a,2);
+
+  %allocate memory 
+  k = zeros( [size(w), s] );
+  
+  for i = 1:n
+    k(:,:,1) = h*g(w);
+    for j = 2:s
+      W = e(c(j)) .* w;
+      for k = 1:j-1
+        W = W + a(j,k) * e(c(j) - c(k)) .* k(:,:,k);
+      end
+      k(:,j) = h*g(W);
+    end
+    %Quadrature
+    u = u + k*b;
+  end
+end

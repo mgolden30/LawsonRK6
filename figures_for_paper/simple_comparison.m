@@ -40,12 +40,12 @@ names = [
     "RK6(5)9b*  (Verner 1991)"
     "RK6-uniform (this manuscript)"];
 
-rng(123); %seed random number generation
-trials = 128;
-x0 = 2*randn([3, trials]);
-%x0 = [1;2;3]
+%rng(123); %seed random number generation
+%trials = 128;
+%x0 = 2*randn([3, trials]);
+x0 = [1;2;3];
 t = 5;
-ns = 2.^[5:14];
+ns = 2.^[5:13];
 n_fine = 2^15;
 
 [a,b] = eval(methods(1) + "()");
@@ -96,30 +96,56 @@ colors = [
     0.75 0.55 0.55;   % light rose
     0.25 0.60 0.65    % brighter cyan
 ];
+
+colors = [
+    0.38 0.38 0.38;   % gray
+    0.55 0.36 0.36;   % muted red-brown
+    0.36 0.46 0.56;   % muted blue
+    0.40 0.52 0.42;   % muted green
+    0.54 0.50 0.36;   % muted olive
+    0.48 0.40 0.56;   % muted purple
+    0.58 0.44 0.44;   % dusty rose
+    0.36 0.50 0.54;   % muted cyan
+
+    0.50 0.50 0.50;   % lighter gray
+    0.60 0.42 0.32;   % warm brown-orange
+    0.32 0.50 0.60;   % softer blue
+    0.34 0.58 0.44;   % softer green
+    0.60 0.58 0.40;   % softer olive
+    0.54 0.44 0.62;   % softer purple
+    0.64 0.50 0.50;   % muted rose
+    0.32 0.54 0.58    % softer cyan
+];
+
 highlight = [0.95 0.65 0.00]; % strong orange
 highlight = [0.00 0.45 0.85]; % vivid blue
 highlight = [0.90 0.10 0.10]; % bright red
 
 rng(1);
 for i = 1:(numel(methods)-1)
-  x_jittered = ns .* (1 + 0.02*randn(size(ns)));
+  x_jittered = ns;% .* (1 + 0.02*randn(size(ns)));
   scatter(x_jittered, err(i,:), ms, 'o', 'filled', 'MarkerFaceColor', colors(i,:));
   hold on
 end
-scatter(ns, err(end,:), 2*ms, 'p', 'filled', 'MarkerFaceColor', highlight);
+scatter(ns, err(end,:), 2*ms, 's', 'filled', 'MarkerFaceColor', highlight);
 
 hold off
 set(gca, 'xscale', 'log');
 set(gca, 'yscale', 'log');
-legend(names);
+legend(names, 'Interpreter', 'latex');
 box on;
 xlabel("number of timesteps $m$", "interpreter", "latex");
 ylabel("$L_2$ error", "interpreter", "latex");
 
 %xticks(ns);
 xlim([ns(1)/sqrt(2), ns(end)*sqrt(2)]);
-
 estimate_order(ns, err, methods);
+
+set(gca, 'fontsize', 20);
+yticks(10.^[-16:3:-2]);
+exportgraphics(gcf, "figures/simple_test.png");
+
+
 
 function x = RK(a,b,x,v_fn,t,n)
   h = t/n;
