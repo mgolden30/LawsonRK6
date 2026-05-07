@@ -1,12 +1,14 @@
 %{
-Linear stability analysis of my RK6 method
+Linear stability analysis 
 %}
 
-
+close all;
 clear;
 clf;
 
-[a,b] = my_rk6();
+%Print the stability polynomials of three methods
+
+[a,b] = rk6_uniform();
 phi_rk6 = stability_polynomial(a,b)
 
 [a,b] = rk4();
@@ -17,90 +19,28 @@ phi_rk1 = stability_polynomial(a,b)
 
 
 %% Make diagram for usual linear stability
+%Set deterministic figure size
+fig = figure;
+fig.Units = 'inches';
+% [left bottom width height]
+fig.Position = [1 1 7.0 3.5];
 
 tl = tiledlayout(1,2);
-ax1 = nexttile;
 
-x_grid = linspace(-4.5, 4.5, 512);
-y_grid = linspace(-4.5, 4.5, 512);
-[X,Y] = meshgrid( x_grid, y_grid );
+nexttile;
+figure_1a(phi_rk1, phi_rk4, phi_rk6);
 
+nexttile;
+figure_1b(phi_rk1, phi_rk4, phi_rk6)
+set(gcf,'Renderer','painters');
+axis tight;
+exportgraphics(gcf, 'figures/stability.pdf', ...
+    'ContentType', 'vector', ....
+    'BackgroundColor','white');
 
-%colors = {"red", "blue", "green"};
-colors = {"#e4572e", "#17bebb", "#ffc914"};
-draw_stability_curve(phi_rk1, X, Y, '-.', 0, colors{1});
-hold on
-draw_stability_curve(phi_rk4, X, Y, '--', 0, colors{2});
-draw_stability_curve(phi_rk6, X, Y, '-', 0, colors{3});
-hold off
-legend({"RK1", "RK4", "RK6"}, "interpreter", "latex", "location", "southeast");
-xlabel("Re($\lambda$)", "interpreter", "latex");
-ylabel("Im($\lambda$)", "interpreter", "latex");
-xticks([-6:2:6]);
-%xlim([-5, 0.4]);
-yticks(-4:2:4);
-%xticks([]);
-set(gcf, "color", "w");
-
-
-side_length = @(x) max(x) - min(x);
-sx = side_length(xlim);
-sy = side_length(ylim);
-pbaspect([side_length(xlim),side_length(ylim),1])
-
-
-fs = 24;
-set(gca, "fontsize", fs);
-ax = gca;
-ax.TickLabelInterpreter = 'latex';
-
-%exportgraphics(gcf, 'figures/stability.png', 'Resolution', 600);
-
-
-%% Do linear stability analsys with a specific eigenvalue handled implicitly
-ax2 = nexttile;
-
-x_grid = linspace(-30, 30, 512);
-y_grid = linspace(-30, 30, 512);
-[X,Y] = meshgrid( x_grid, y_grid );
-
-z2 = -10;
-
-draw_stability_curve(phi_rk1, X, Y, '-.', z2, colors{1});
-hold on
-draw_stability_curve(phi_rk4, X, Y, '--', z2, colors{2});
-draw_stability_curve(phi_rk6, X, Y, '-', z2, colors{3});
-
-draw_stability_curve(phi_rk1, X, Y, '-', 0, 'k');
-draw_stability_curve(phi_rk4, X, Y, '-', 0, 'k');
-draw_stability_curve(phi_rk6, X, Y, '-', 0, 'k');
-
-pos = [-4.5,-4.5,9,9];
-rectangle('Position', pos, "LineWidth", 1) 
-hold off
-text(14, 26, "$z_2 = -10$", "Interpreter", "latex", "fontsize", fs);
-legend({"", "SLRK4", "SLRK6"}, "interpreter", "latex", "location", "southwest");
-xlabel("Re($\lambda$)", "interpreter", "latex");
-ylabel("Im($\lambda$)", "interpreter", "latex");
-%yticks(-4:2:4);
-%xticks([]);
-set(gcf, "color", "w");
-
-sx = side_length(xlim);
-sy = side_length(ylim);
-pbaspect([side_length(xlim),side_length(ylim),1])
-
-set(gca, "fontsize", fs);
-
-xticks([-30, 0, 30]);
-yticks([-30, 0, 30]);
-ax = gca;
-ax.TickLabelInterpreter = 'latex';
-
-
-
-exportgraphics(gcf, 'figures/stability.png', 'Resolution', 600);
-
+function fs = font_size()
+  fs = 12;
+end
 
 function draw_stability_curve(phi, X, Y, style, z2, color)
   Z = X + 1i*Y;
@@ -163,7 +103,7 @@ function phi = lawson_stability_polynomial(a,b)
 end
 
 
-function [a,b] = my_rk6()
+function [a,b] = rk6_uniform()
   b = sym( [13/200, 0, 4/25, 11/40, 0, 11/40, 4/25, 13/200] );
 
   a = sym(zeros(8,8));
@@ -190,4 +130,80 @@ function [a,b] = rk1()
   b = sym( [1] );
 
   a = sym(zeros(1,1));
+end
+
+function figure_1a(phi_rk1, phi_rk4, phi_rk6)
+  x_grid = linspace(-4.5, 4.5, 512);
+  y_grid = linspace(-4.5, 4.5, 512);
+  [X,Y] = meshgrid( x_grid, y_grid );
+
+  %colors = {"red", "blue", "green"};
+  colors = {"#e4572e", "#17bebb", "#ffc914"};
+  draw_stability_curve(phi_rk1, X, Y, '-.', 0, colors{1});
+  hold on
+  draw_stability_curve(phi_rk4, X, Y, '--', 0, colors{2});
+  draw_stability_curve(phi_rk6, X, Y, '-', 0, colors{3});
+  hold off
+  legend({"RK1", "RK4", "RK6"}, "interpreter", "latex", "location", "east");
+  xlabel("Re($z$)", "interpreter", "latex");
+  ylabel("Im($z$)", "interpreter", "latex");
+  xticks([-6:2:6]);
+  %xlim([-5, 0.4]);
+  yticks(-4:2:4);
+  %xticks([]);
+  set(gcf, "color", "w");
+
+
+  side_length = @(x) max(x) - min(x);
+  sx = side_length(xlim);
+  sy = side_length(ylim);
+  pbaspect([side_length(xlim),side_length(ylim),1])
+
+
+  fs = font_size();
+  set(gca, "fontsize", fs);
+  ax = gca;
+  ax.TickLabelInterpreter = 'latex';
+
+  %exportgraphics(gcf, 'figures/stability.png', 'Resolution', 600);
+end
+
+function figure_1b(phi_rk1, phi_rk4, phi_rk6)
+  x_grid = linspace(-30, 30, 512);
+  y_grid = linspace(-30, 30, 512);
+  [X,Y] = meshgrid( x_grid, y_grid );
+
+  z2 = -10;
+
+  colors = {"#e4572e", "#17bebb", "#ffc914"};
+  draw_stability_curve(phi_rk1, X, Y, '-.', z2, colors{1});
+  hold on
+  draw_stability_curve(phi_rk4, X, Y, '--', z2, colors{2});
+  draw_stability_curve(phi_rk6, X, Y, '-', z2, colors{3});
+
+  draw_stability_curve(phi_rk1, X, Y, '-', 0, 'k');
+  draw_stability_curve(phi_rk4, X, Y, '-', 0, 'k');
+  draw_stability_curve(phi_rk6, X, Y, '-', 0, 'k');
+  fs = font_size();
+  pos = [-4.5,-4.5,9,9];
+  rectangle('Position', pos, "LineWidth", 1) 
+  hold off
+  text(-10, 20, "$z_2 = -10$", "Interpreter", "latex", "fontsize", fs);
+  legend({"", "SLRK4", "SLRK6"}, "interpreter", "latex", "location", "southwest");
+  xlabel("Re($z_1$)", "interpreter", "latex");
+  ylabel("Im($z_1$)", "interpreter", "latex");
+  %yticks(-4:2:4);
+  %xticks([]);
+  set(gcf, "color", "w");
+  side_length = @(x) max(x) - min(x);
+  sx = side_length(xlim);
+  sy = side_length(ylim);
+  pbaspect([side_length(xlim),side_length(ylim),1])
+
+  set(gca, "fontsize", fs);
+
+  xticks([-30, 0, 30]);
+  yticks([-30, 0, 30]);
+  ax = gca;
+  ax.TickLabelInterpreter = 'latex';
 end
